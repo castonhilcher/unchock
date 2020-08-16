@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'unchock.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'unchock',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'db',

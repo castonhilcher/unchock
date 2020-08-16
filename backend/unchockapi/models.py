@@ -4,8 +4,8 @@ from django.db import models
 class CheckIn(models.Model):
     class Meta:
         db_table = 'check_in'
+        unique_together = ('booking_ref_num', 'passenger_first_name', 'passenger_last_name', 'departure_date')
 
-    airline = models.CharField('Name of Airline', max_length=30, null=False)
     booking_ref_num = models.CharField('Booking reference number', max_length=10, null=False)
     passenger_first_name = models.CharField('First name of the passenger to check in', max_length=50, null=False)
     passenger_last_name = models.CharField('Last name of the passenger to check in', max_length=50, null=False)

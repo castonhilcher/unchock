@@ -15,5 +15,13 @@ services:
     container_name: db
     image: postgres
     environment:
+      POSTGRES_DB: unchock
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+  ng:
+    container_name: ng
+    build: frontend
+    ports:
+      - "8080:80"
