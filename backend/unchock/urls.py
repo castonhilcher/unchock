@@ -19,5 +19,5 @@ from unchockapi import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/check-in/', views.CheckInView.as_view(), name='check-in')
+    path('api/check-ins/', views.CheckInView.as_view(), name='check-in')
 ]

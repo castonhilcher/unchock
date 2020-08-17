@@ -1,4 +1,5 @@
 from .exceptions import ConflictException
+from .models import CheckIn
 from .serializers import CheckInSerializer, ResponseSerializer, RequestSerializer
 
 from rest_framework.views import APIView
@@ -12,7 +13,6 @@ class CheckInView(APIView):
     """
     Enter in the information to check into your flight
     """
-
     def post(self, request, format=None):
         request_serializer = RequestSerializer(data=request.data)
 
@@ -24,3 +24,11 @@ class CheckInView(APIView):
             except ConflictException as exception:
                 return Response(data=exception.message, status=exception.status)
         return Response(request_serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    """
+        Gets all the current flights
+    """
+    def get(self, request, format=None):
+
+        serializer = CheckInSerializer(CheckIn.objects.all(), many=True)
+        return Response(serializer.data)
