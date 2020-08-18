@@ -1,10 +1,10 @@
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .exceptions import ConflictException
 from .models import CheckIn
-from .serializers import CheckInSerializer, ResponseSerializer, RequestSerializer
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from .serializers import CheckInSerializer, RequestSerializer
 from .utils import get_flight_info_and_create_check_ins
 
 
@@ -18,9 +18,9 @@ class CheckInView(APIView):
 
         if request_serializer.is_valid():
             try:
-                check_in_response = get_flight_info_and_create_check_ins(request_serializer.validated_data)
-                response_serializer = ResponseSerializer(check_in_response)
-                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+                check_ins = get_flight_info_and_create_check_ins(request_serializer.validated_data)
+                serializer = CheckInSerializer(check_ins, many=True)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             except ConflictException as exception:
                 return Response(data=exception.message, status=exception.status)
         return Response(request_serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

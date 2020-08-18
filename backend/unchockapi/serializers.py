@@ -26,13 +26,3 @@ class RequestSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         pass
-
-
-class ResponseSerializer(serializers.Serializer):
-    flights = CheckInSerializer(many=True)
-
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass

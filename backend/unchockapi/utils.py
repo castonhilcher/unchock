@@ -7,7 +7,10 @@ from .classes import CheckInResponse
 from .exceptions import ConflictException
 from .models import CheckIn
 import pendulum
+import logging
 from datetime import timedelta
+
+logger = logging.getLogger(__name__)
 
 # Host urls
 SOUTHWEST_HOST = 'https://www.southwest.com'
@@ -63,13 +66,15 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
         "site": "southwest"
     }
 
+    logger.error(data)
     response = session.post(SOUTHWEST_HOST + SOUTHWEST_GET_FLIGHT, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
     if response.status_code != 200:
+        logger.error(response.json())
         raise Exception('response status needs to be 200. actual value was {status}'.format(status=response.status_code))
 
     response_object = response.json()
 
-    response = CheckInResponse()
+    check_ins = []
     for reservation in response_object['data']['searchResults']['reservations']:
         for passenger in reservation['air']['ADULT']['passengers']:
             departure_date = None
@@ -89,8 +94,8 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
                             departure_date=departure_date,
                             check_in_time=departure_date_time - timedelta(days=1)
                         )
-                        response.add_check_in(check_in)
+                        check_ins.append(check_in)
                     except IntegrityError as error:
                         raise ConflictException("Duplicate key in the table")
 
-    return response
+    return check_ins
