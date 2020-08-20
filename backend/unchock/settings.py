@@ -39,8 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'unchockapi',
-    'corsheaders'
+    'corsheaders',
+    'django_crontab',
 ]
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -131,3 +133,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:4200',
     'http://localhost:8080',
 )
+
+CRONJOBS = [
+    ('* * * * *', 'unchockapi.cron.check_in')
+]

@@ -4,3 +4,4 @@ psycopg2==2.8.5
 requests==2.24.0
 pendulum==2.1.2
 django-cors-headers==3.4.0
+django-crontab==0.7.1
