@@ -112,6 +112,9 @@ def check_into_flights(check_ins):
             # Actually check in
             finalize_check_in(session, check_in.booking_ref_num, token)
 
+            setattr(check_in, 'status', 'DONE')
+            check_in.save()
+
             # Update afterwards
         except Exception as exception:
             logger.error(exception)
@@ -130,7 +133,7 @@ def attempt_check_in(confirmation_num, passenger_first_name, passenger_last_name
     }
 
     response = session.post(SOUTHWEST_HOST + CHECKIN_URL, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
-    if response.status_code is 200 or response.status_code is 304:
+    if response.status_code == 200 or response.status_code == 304:
         json_response = json.loads(response.content)
         token = json_response['data']['searchResults']['token']
     else:
