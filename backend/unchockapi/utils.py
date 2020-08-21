@@ -3,7 +3,6 @@ import json
 
 from django.db import IntegrityError
 
-from .classes import CheckInResponse
 from .exceptions import ConflictException
 from .models import CheckIn
 import pendulum
@@ -18,7 +17,8 @@ SOUTHWEST_HOST = 'https://www.southwest.com'
 
 # endpoints
 SOUTHWEST_GET_FLIGHT = '/api/air-misc/v1/air-misc/page/air/manage-reservation/view'
-
+CHECKIN_URL = '/api/air-checkin/v1/air-checkin/page/air/check-in/review'
+CONFIRMATION_PATH = '/api/air-checkin/v1/air-checkin/page/air/check-in/confirmation'
 
 # Southwest Response Constants
 class SouthwestResponseStatus:
@@ -99,3 +99,62 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
                         raise ConflictException("Duplicate key in the table")
 
     return check_ins
+
+
+def check_into_flights(check_ins):
+    for check_in in check_ins:
+        logger.info('trying to check in')
+        try:
+            # Get the token for check in
+            token, session = attempt_check_in(check_in.booking_ref_num, check_in.passenger_first_name,
+                                              check_in.passenger_last_name)
+
+            # Actually check in
+            finalize_check_in(session, check_in.booking_ref_num, token)
+
+            # Update afterwards
+        except Exception as exception:
+            logger.error(exception)
+
+
+# Attempts to check in, returns the http session and the token needed to check in
+def attempt_check_in(confirmation_num, passenger_first_name, passenger_last_name):
+    session = requests.Session()
+    session.get(SOUTHWEST_HOST)
+    data = {
+        "passengerFirstName": passenger_first_name,
+        "passengerLastName": passenger_last_name,
+        "confirmationNumber": confirmation_num,
+        "application": "air-check-in",
+        "site": "southwest"
+    }
+
+    response = session.post(SOUTHWEST_HOST + CHECKIN_URL, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
+    if response.status_code is 200 or response.status_code is 304:
+        json_response = json.loads(response.content)
+        token = json_response['data']['searchResults']['token']
+    else:
+        token = 'faketoken'  # Todo: clean this up
+
+    return token, session
+
+
+# Finalizes the check in and gets the boarding pass
+def finalize_check_in(session, confirmation_num, token):
+    data = {
+        'airportCheckInRequiredReservation': 'false',
+        'confirmationNumber': confirmation_num,
+        'drinkCouponSelected': 'false',
+        'electronicSystemTravelAuthorizationRequiredReservation': 'false',
+        'international': 'false',
+        'reprint': 'false',
+        'token': token,
+        'travelAuthorizationCheckNotPerformed': 'false',
+        'travelerIdentifiers': [],
+        'application': 'air-check-in',
+        'site': 'southwest'
+    }
+
+    # TODO: Determine if we need to do anything more
+    # Makes the call to get the confirmation which will hold the boarding pass
+    session.post(SOUTHWEST_HOST + CONFIRMATION_PATH, data=json.dumps(data), headers=SOUTHWEST_HEADERS)

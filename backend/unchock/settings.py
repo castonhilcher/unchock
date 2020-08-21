@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = 'buw$!xp**99koo+%8@+t&!o2c4ld^k3p^@2b687%w-csn45lea'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -40,9 +38,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'unchockapi',
     'corsheaders',
-    'django_crontab',
+    'django_cron'
 ]
-
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -75,7 +72,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'unchock.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -89,7 +85,6 @@ DATABASES = {
         'PORT': 5432,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -109,7 +104,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -123,7 +117,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
@@ -134,6 +127,44 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
 )
 
-CRONJOBS = [
-    ('* * * * *', 'unchockapi.cron.check_in')
+# Automatic Django logging at the INFO level (i.e everything the comes to the console when ran locally)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR + '/logs/output.log',
+            'maxBytes': 1 * 1024 * 1024,
+            'backupCount': 30
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        'django.server': {
+            'handlers': ['django.server', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'unchockapi.custom': {
+            'handlers': ['console'],
+            'propagate': True,
+        },
+    },
+}
+
+CRON_CLASSES = [
+    "unchockapi.crons.CheckInJob"
 ]
