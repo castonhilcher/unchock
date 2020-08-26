@@ -1,4 +1,6 @@
 .idea
-backend/scheduler.txt
-backend/logs
+/backend/logs
+/backend/scheduler.txt
 venv
+*.pyc
+*.pyo
