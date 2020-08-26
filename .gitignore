@@ -1,4 +1,4 @@
 .idea
 backend/scheduler.txt
-backend/logs/*.log
+backend/logs
 venv
