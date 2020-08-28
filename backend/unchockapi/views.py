@@ -1,7 +1,6 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from datetime import datetime, timedelta
 from background_task import background
 
 from .exceptions import ConflictException
@@ -15,7 +14,7 @@ class CheckInView(APIView):
     """
     Enter in the information to check into your flight
     """
-    def post(self, request, format=None):
+    def post(self, request):
         request_serializer = RequestSerializer(data=request.data)
 
         if request_serializer.is_valid():

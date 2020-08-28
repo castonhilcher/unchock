@@ -68,7 +68,6 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
         "site": "southwest"
     }
 
-    logger.error(data)
     response = session.post(SOUTHWEST_HOST + SOUTHWEST_GET_FLIGHT, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
     if response.status_code != 200:
         logger.error(response.json())
@@ -97,26 +96,24 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
                             check_in_time=departure_date_time - timedelta(days=1)
                         )
                         check_ins.append(check_in)
-                    except IntegrityError as error:
+                    except IntegrityError:
                         raise ConflictException("Duplicate key in the table")
 
     return check_ins
 
 
+# Checks into the flights to get the boarding number
 def check_into_flights(check_in):
-    logger.info('trying to check in')
     try:
         # Get the token for check in
-        token, session = attempt_check_in(check_in.booking_ref_num, check_in.passenger_first_name,
-                                          check_in.passenger_last_name)
+        token, session = attempt_check_in(check_in.booking_ref_num, check_in.passenger_first_name, check_in.passenger_last_name)
 
         # Actually check in
-        finalize_check_in(session, check_in.booking_ref_num, token)
+        finalize_check_in(session, check_in.passenger_first_name, check_in.passenger_last_name, check_in.booking_ref_num, token)
 
         setattr(check_in, 'status', 'DONE')
         check_in.save()
 
-        # Update afterwards
     except Exception as exception:
         logger.error(exception)
         setattr(check_in, 'status', 'FAIL')
@@ -136,16 +133,15 @@ def attempt_check_in(confirmation_num, passenger_first_name, passenger_last_name
     }
 
     response = session.post(SOUTHWEST_HOST + CHECKIN_URL, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
+    token = None
     if response.status_code == 200 or response.status_code == 304:
         json_response = json.loads(response.content)
         token = json_response['data']['searchResults']['token']
-    else:
-        token = 'faketoken'  # Todo: clean this up
 
     return token, session
 
 
-# Finalizes the check in and gets the boarding pass
+# Finalizes the check in
 def finalize_check_in(session, passenger_first_name, passenger_last_name, confirmation_num, token):
     data = {
         "airportCheckInRequiredReservation": "false",
@@ -163,35 +159,5 @@ def finalize_check_in(session, passenger_first_name, passenger_last_name, confir
         "site": "southwest"
     }
 
-    # TODO: Determine if we need to do anything more
-    # Makes the call to get the confirmation which will hold the boarding pass
+    # Finalizes the check in
     session.post(SOUTHWEST_HOST + CONFIRMATION_PATH, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
-    # if response.status_code is 200:
-    #     boarding_position = ""
-    #     checkin_json = json.loads(response.content)
-    #     try:
-    #         b = checkin_json['data']['searchResults']['reservation']['travelers'][0]['boardingBounds'][0]['boardingSegments'][0]
-    #         boarding_position = b['boardingGroup'] + b['boardingGroupPosition']
-    #         traveler_identity = checkin_json['data']['searchResults']['reservation']['travelers'][0]['travelerIdentity']
-    #     except:
-    #         logger.log('Error getting boarding pass or traveler identity')
-    #
-    #     doc_payload = {
-    #         "deliveryMethod": "EMAIL",
-    #         "destination": 'castonhilcher@gmail.com',
-    #         "confirmationNumber": confirmation_num,
-    #         "drinkCouponSelected": "false",
-    #         "token": token,
-    #         "application": "air-check-in",
-    #         "site": "southwest",
-    #         "travelerIdentity": traveler_identity
-    #     }
-    #
-    #     doc_response = session.post(SOUTHWEST_HOST + BOARDING_PASS_PATH, data=json.dumps(doc_payload), headers=SOUTHWEST_HEADERS)
-    #
-    #     if doc_response.status_code is 200:
-    #         if doc_response.content.find("Boarding Pass Confirmation") is not -1:
-    #             logger.info("Success checking in confirmation number: " + confirmation_num)
-    #             return boarding_position
-    #         else:
-    #             raise Exception('Error checking in')
