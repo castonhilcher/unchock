@@ -1,16 +1,13 @@
 #!/bin/bash
 
-# Migrate Django_Cron
+while ! nc -z db 5432; do sleep 1; done;
+
 echo "Apply database migrations"
 python manage.py migrate
 
-# Start Cron Job defined in docker file
-echo "Starting cron"
-echo "* * * * * /code/cronbash.sh >> /var/log/cron.log 2>&1
-# This extra line makes it a valid cron" > scheduler.txt
-
-crontab scheduler.txt
-nohup cron -f &
+# Start tasks
+echo "Starting process_tasks"
+nohup python manage.py process_tasks &
 
 # Start server
 echo "Starting server"

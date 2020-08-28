@@ -16,9 +16,11 @@ SOUTHWEST_HOST = 'https://www.southwest.com'
 
 
 # endpoints
+BOARDING_PASS_PATH = '/api/air-checkin/v1/air-checkin/feature/mobile-boarding-pass'
 SOUTHWEST_GET_FLIGHT = '/api/air-misc/v1/air-misc/page/air/manage-reservation/view'
 CHECKIN_URL = '/api/air-checkin/v1/air-checkin/page/air/check-in/review'
 CONFIRMATION_PATH = '/api/air-checkin/v1/air-checkin/page/air/check-in/confirmation'
+
 
 # Southwest Response Constants
 class SouthwestResponseStatus:
@@ -101,23 +103,24 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
     return check_ins
 
 
-def check_into_flights(check_ins):
-    for check_in in check_ins:
-        logger.info('trying to check in')
-        try:
-            # Get the token for check in
-            token, session = attempt_check_in(check_in.booking_ref_num, check_in.passenger_first_name,
-                                              check_in.passenger_last_name)
+def check_into_flights(check_in):
+    logger.info('trying to check in')
+    try:
+        # Get the token for check in
+        token, session = attempt_check_in(check_in.booking_ref_num, check_in.passenger_first_name,
+                                          check_in.passenger_last_name)
 
-            # Actually check in
-            finalize_check_in(session, check_in.booking_ref_num, token)
+        # Actually check in
+        finalize_check_in(session, check_in.booking_ref_num, token)
 
-            setattr(check_in, 'status', 'DONE')
-            check_in.save()
+        setattr(check_in, 'status', 'DONE')
+        check_in.save()
 
-            # Update afterwards
-        except Exception as exception:
-            logger.error(exception)
+        # Update afterwards
+    except Exception as exception:
+        logger.error(exception)
+        setattr(check_in, 'status', 'FAIL')
+        check_in.save()
 
 
 # Attempts to check in, returns the http session and the token needed to check in
@@ -143,21 +146,52 @@ def attempt_check_in(confirmation_num, passenger_first_name, passenger_last_name
 
 
 # Finalizes the check in and gets the boarding pass
-def finalize_check_in(session, confirmation_num, token):
+def finalize_check_in(session, passenger_first_name, passenger_last_name, confirmation_num, token):
     data = {
-        'airportCheckInRequiredReservation': 'false',
-        'confirmationNumber': confirmation_num,
-        'drinkCouponSelected': 'false',
-        'electronicSystemTravelAuthorizationRequiredReservation': 'false',
-        'international': 'false',
-        'reprint': 'false',
-        'token': token,
-        'travelAuthorizationCheckNotPerformed': 'false',
-        'travelerIdentifiers': [],
-        'application': 'air-check-in',
-        'site': 'southwest'
+        "airportCheckInRequiredReservation": "false",
+        "confirmationNumber": confirmation_num,
+        "passengerFirstName": passenger_first_name,
+        "passengerLastName": passenger_last_name,
+        "drinkCouponSelected": "false",
+        "electronicSystemTravelAuthorizationRequiredReservation": "false",
+        "international": "false",
+        "reprint": "false",
+        "token": token,
+        "travelAuthorizationCheckNotPerformed": "false",
+        "travelerIdentifiers": [],
+        "application": "air-check-in",
+        "site": "southwest"
     }
 
     # TODO: Determine if we need to do anything more
     # Makes the call to get the confirmation which will hold the boarding pass
     session.post(SOUTHWEST_HOST + CONFIRMATION_PATH, data=json.dumps(data), headers=SOUTHWEST_HEADERS)
+    # if response.status_code is 200:
+    #     boarding_position = ""
+    #     checkin_json = json.loads(response.content)
+    #     try:
+    #         b = checkin_json['data']['searchResults']['reservation']['travelers'][0]['boardingBounds'][0]['boardingSegments'][0]
+    #         boarding_position = b['boardingGroup'] + b['boardingGroupPosition']
+    #         traveler_identity = checkin_json['data']['searchResults']['reservation']['travelers'][0]['travelerIdentity']
+    #     except:
+    #         logger.log('Error getting boarding pass or traveler identity')
+    #
+    #     doc_payload = {
+    #         "deliveryMethod": "EMAIL",
+    #         "destination": 'castonhilcher@gmail.com',
+    #         "confirmationNumber": confirmation_num,
+    #         "drinkCouponSelected": "false",
+    #         "token": token,
+    #         "application": "air-check-in",
+    #         "site": "southwest",
+    #         "travelerIdentity": traveler_identity
+    #     }
+    #
+    #     doc_response = session.post(SOUTHWEST_HOST + BOARDING_PASS_PATH, data=json.dumps(doc_payload), headers=SOUTHWEST_HEADERS)
+    #
+    #     if doc_response.status_code is 200:
+    #         if doc_response.content.find("Boarding Pass Confirmation") is not -1:
+    #             logger.info("Success checking in confirmation number: " + confirmation_num)
+    #             return boarding_position
+    #         else:
+    #             raise Exception('Error checking in')

@@ -36,9 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'background_task',
     'unchockapi',
     'corsheaders',
-    'django_cron'
 ]
 
 MIDDLEWARE = [
@@ -168,3 +168,7 @@ LOGGING = {
 CRON_CLASSES = [
     "unchockapi.crons.CheckInJob"
 ]
+
+# django-background-tasks
+# -----------------------
+BACKGROUND_TASK_RUN_ASYNC = True

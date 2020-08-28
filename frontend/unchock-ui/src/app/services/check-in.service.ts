@@ -15,7 +15,7 @@ export class CheckInService {
   getListOfCheckIns(): void {
     this.httpClient.get<CheckIn[]>(`http://localhost/api/check-ins/`).subscribe(checkIns => {
       this.checkIns.push(...checkIns);
-      this.checkInsSubject.next(checkIns.slice());
+      this.checkInsSubject.next(this.checkIns.slice());
     });
   }
 
@@ -27,7 +27,7 @@ export class CheckInService {
     this.httpClient.post<CheckIn[]>(`http://localhost/api/check-ins/`, request).subscribe(checkIns => {
       this.checkIns.push(...checkIns);
 
-      this.checkInsSubject.next(checkIns.slice());
+      this.checkInsSubject.next(this.checkIns.slice());
     });
   }
 }

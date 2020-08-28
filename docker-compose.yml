@@ -9,7 +9,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - ng #indirectly allowing db more time to start up. not great but works
+      - db
   db:
     container_name: db
     image: postgres
@@ -24,5 +24,3 @@ services:
     build: frontend
     ports:
       - "8080:80"
-    depends_on:
-      - db
