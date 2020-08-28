@@ -4,20 +4,27 @@
       <h1>Unchock</h1>
       <p>Enter your flight information, and automatically get checked in.</p>
     </div>
-    <form>
+    <form [formGroup]="checkInForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label for="passengerFirstName">Passenger First Name</label>
-        <input type="text" class="form-control" id="passengerFirstName">
+        <input type="text" class="form-control" id="passengerFirstName" formControlName="passengerFirstName">
       </div>
       <div class="form-group">
         <label for="passengerLastName">Passenger Last Name</label>
-        <input type="text" class="form-control" id="passengerLastName">
+        <input type="text" class="form-control" id="passengerLastName" formControlName="passengerLastName">
       </div>
       <div class="form-group">
         <label for="confirmationNumber">Confirmation Number</label>
-        <input type="text" class="form-control" id="confirmationNumber">
+        <input type="text" class="form-control" id="confirmationNumber" formControlName="confirmationNumber">
       </div>
+      <button type="button" (click)="onClear()" class="btn btn-outline-danger float-left">Clear</button>
       <button type="submit" class="btn btn-primary float-right">Check In</button>
     </form>
+    <hr>
+    <ul class="list-group">
+      <li class="list-group-item" *ngFor="let checkin of checkIns">
+        {{checkin.passenger_first_name}} {{checkin.passenger_last_name}}
+      </li>
+    </ul>
   </div>
 </div>
