@@ -80,6 +80,8 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
         for passenger in reservation['air']['ADULT']['passengers']:
             departure_date = None
             for bound in reservation['air']['bounds']:
+                from_city = bound['originationAirportCode']
+                to_city = bound['destinationAirportCode']
                 if departure_date != bound['departureDate']:
                     departure_date = bound['departureDate']
                     departure_date_time = pendulum.parse(bound['stopsDetails'][0]['departureDateTime'])
@@ -91,6 +93,8 @@ def get_flight_info_and_create_check_ins(passenger_confirmation):
                             passenger_last_name=passenger['name']['lastName'],
                             passenger_first_name=passenger['name']['firstName'],
                             booking_ref_num=passenger['confirmationNumber'],
+                            to_city=to_city,
+                            from_city=from_city,
                             departure_flight_time=departure_date_time,
                             departure_date=departure_date,
                             check_in_time=departure_date_time - timedelta(days=1)

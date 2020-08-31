@@ -1,51 +1,55 @@
-<div class="container w-25">
-  <div class="row">
-    <div class="col">
-      <h1>Unchock</h1>
+<section>
+  <div class="container-fluid p-5">
+    <div class="row text-light py-3">
+      <div class="col-6">
+        <h1 class="display-3 pb-2">Unchock</h1>
+        <p class="h4 font-weight-light opacity-70">Enter your information and we will check you in</p>
+      </div>
+      <div class="col-6">
+      </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <p>Enter your flight information, and automatically get checked in.</p>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <div class="shadow bg-white rounded my-3 p-3">
+    <div class="row">
+      <div class="col-12">
         <form [formGroup]="checkInForm" (ngSubmit)="onSubmit()">
-          <div class="form-group">
-            <label for="passengerFirstName">Passenger First Name</label>
-            <input type="text" class="form-control" id="passengerFirstName" formControlName="passengerFirstName">
-          </div>
-          <div class="form-group">
-            <label for="passengerLastName">Passenger Last Name</label>
-            <input type="text" class="form-control" id="passengerLastName" formControlName="passengerLastName">
-          </div>
-          <div class="form-group">
-            <label for="confirmationNumber">Confirmation Number</label>
-            <input type="text" class="form-control" id="confirmationNumber" formControlName="confirmationNumber">
-          </div>
-          <div class="row">
-            <div class="col text-left">
-              <button type="button" (click)="onClear()" class="btn btn-outline-danger ">Clear</button>
+          <div class="form-row align-items-center py-4">
+            <div class="col">
+              <label class="sr-only" for="passengerFirstName"></label>
+              <input type="text" class="form-control" id="passengerFirstName" placeholder="Passenger first name" formControlName="passengerFirstName">
             </div>
-            <div class="col text-right">
-              <button type="submit" class="btn btn-primary">Check In</button>
+            <div class="col">
+              <label class="sr-only" for="passengerLastName"></label>
+              <input type="text" class="form-control" placeholder="Passenger last name" id="passengerLastName" formControlName="passengerLastName">
+            </div>
+            <div class="col">
+              <label class="sr-only" for="confirmationNumber"></label>
+              <input type="text" class="form-control" id="confirmationNumber" placeholder="Confirmation number" formControlName="confirmationNumber">
+            </div>
+            <div class="col">
+              <button type="submit" class="btn btn-light" [disabled]="submittingForm">
+                <span *ngIf="submittingForm" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Check{{submittingForm ? 'ing' : ''}} In
+              </button>
             </div>
           </div>
         </form>
       </div>
     </div>
-  </div>
-  <hr>
-  <div class="row">
-    <div class="col">
-      <h3>Flights you are checked in to</h3>
-      <ul class="list-group">
-        <li class="list-group-item" *ngFor="let checkin of checkIns">
-          {{checkin.passenger_first_name}} {{checkin.passenger_last_name}} - {{checkin.booking_ref_num}} | {{checkin.departure_flight_time}}
-        </li>
-      </ul>
+    <div class="row py-5">
+      <div *ngFor="let checkIn of checkIns" class="col-3">
+        <div class="card" style="max-width: 540px;">
+          <div class="row no-gutters">
+            <div class="card-body">
+              <span *ngIf="checkIn.status === 'FOUND'" class="badge float-right badge-info">PENDING</span>
+              <span *ngIf="checkIn.status === 'FAIL'" class="badge float-right badge-danger">FAILED</span>
+              <span *ngIf="checkIn.status === 'DONE'" class="badge float-right badge-success">DONE</span>
+              <h5 class="card-title">{{checkIn.passenger_first_name | titlecase}} {{checkIn.passenger_last_name | titlecase}}</h5>
+              <p class="card-text">{{checkIn.from_city}} -> {{checkIn.to_city}}</p>
+              <p class="card-text">{{checkIn.departure_flight_time | date: 'short'}}</p>
+              <p class="card-text"><small class="text-muted">I will check you in at {{checkIn.check_in_time | date: 'shortTime'}} on {{checkIn.check_in_time | date}}</small></p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>

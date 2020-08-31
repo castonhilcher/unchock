@@ -9,4 +9,6 @@ export class CheckIn {
   status: string;
   create_ts: string;
   update_ts: string;
+  from_city: string;
+  to_city: string;
 }

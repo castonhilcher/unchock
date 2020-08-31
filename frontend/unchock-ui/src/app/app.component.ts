@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {CheckIn} from './models/check-in.model';
 import {FormControl, FormGroup} from '@angular/forms';
 import {CheckInService} from './services/check-in.service';
@@ -11,6 +11,8 @@ import {CheckInService} from './services/check-in.service';
 export class AppComponent {
   title = 'Unchock';
 
+  errorSubmitting = false;
+  submittingForm = false;
   checkIns: CheckIn[] = [];
   checkInForm = new FormGroup({
     passengerFirstName: new FormControl(),
@@ -19,24 +21,26 @@ export class AppComponent {
   });
 
   constructor(private checkInService: CheckInService)  {
-    this.checkInService.getCheckInSubject().subscribe(checkIns => {
+    this.checkInService.getListOfCheckIns().subscribe(checkIns => {
       this.checkIns = checkIns;
     });
-    this.checkInService.getListOfCheckIns();
-
   }
 
-  onClear(): void {
-    this.checkInForm.reset();
+  flipError(): void {
+    this.errorSubmitting = !this.errorSubmitting;
   }
-
   onSubmit(): void {
+    this.submittingForm = true;
     this.checkInService.createCheckIn({
       passenger_first_name: this.checkInForm.get('passengerFirstName').value,
       passenger_last_name: this.checkInForm.get('passengerLastName').value,
       booking_ref_num: this.checkInForm.get('confirmationNumber').value
+    }).subscribe(checkIns => {
+      this.checkIns.push(...checkIns);
+      this.checkInForm.reset();
+      this.submittingForm = false;
+    }, error => {
+        this.flipError();
     });
   }
-
-
 }

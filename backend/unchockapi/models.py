@@ -9,6 +9,8 @@ class CheckIn(models.Model):
     booking_ref_num = models.CharField('Booking reference number', max_length=10, null=False)
     passenger_first_name = models.CharField('First name of the passenger to check in', max_length=50, null=False)
     passenger_last_name = models.CharField('Last name of the passenger to check in', max_length=50, null=False)
+    to_city = models.CharField('Last name of the passenger to check in', max_length=50, null=False)
+    from_city = models.CharField('Last name of the passenger to check in', max_length=50, null=False)
     check_in_time = models.DateTimeField('Date and time check in is allowed', null=False)
     departure_flight_time = models.DateTimeField('Date and time the flight will take off', null=False)
     departure_date = models.DateField('Date and time the flight will take off', null=False)
